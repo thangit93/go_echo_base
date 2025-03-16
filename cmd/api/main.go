@@ -21,34 +21,34 @@ import (
 )
 
 func main() {
-	// Khởi tạo Echo instance
+	// Init Echo instance
 	e := echo.New()
 
 	// Middleware
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 
-	// Kết nối MySQL
-	db, err := gorm.Open(mysql.Open(config.MySQLDSN), &gorm.Config{})
+	// MySQL connection
+	db, err := gorm.Open(mysql.Open(config.MYSQL_DSN), &gorm.Config{})
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
 
-	// Kết nối Redis
+	// Redis connection
 	rdb := redis.NewClient(&redis.Options{
-		Addr:     config.RedisAddr,
+		Addr:     config.REDIS_ADDR,
 		Password: "", // no password set
 		DB:       0,  // use default DB
 	})
 
-	// Kiểm tra kết nối Redis
+	// check Redis connection
 	ctx := context.Background()
 	_, err = rdb.Ping(ctx).Result()
 	if err != nil {
 		log.Fatalf("Failed to connect to Redis: %v", err)
 	}
 
-	// Khởi tạo repository, service, và handler với con trỏ
+	// init repository, service, and handler with pointer
 	userRepo := repositories.NewUserRepository(db)      // *UserRepository
 	userService := services.NewUserService(userRepo)    // *UserService
 	userHandler := handlers.NewUserHandler(userService) // *UserHandler
