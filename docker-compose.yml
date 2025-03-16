@@ -1,0 +1,39 @@
+services:
+  app:
+    build:
+      dockerfile: ./docker/go/Dockerfile
+      context: .
+    container_name: echo_app
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mysql
+      - redis
+    environment:
+      - MYSQL_DSN=user:password@tcp(mysql:3306)/dbname?charset=utf8mb4&parseTime=True&loc=Local
+      - REDIS_ADDR=redis:6379
+
+  mysql:
+    image: mysql:8.0
+    container_name: mysql8
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: dbname
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+
+volumes:
+  mysql-data:
+  redis-data:
