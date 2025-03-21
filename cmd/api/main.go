@@ -20,6 +20,60 @@ import (
 	"echo-base/internal/services"
 )
 
+const (
+	dsn         = config.MYSQL_DSN
+	maxAttempts = 10
+	retryDelay  = 5 * time.Second
+)
+
+func connectToDB() (*gorm.DB, error) {
+	var db *gorm.DB
+	var err error
+
+	for i := 1; i <= maxAttempts; i++ {
+		db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
+			Logger: logger.Default.LogMode(logger.Info), // Log thông tin truy vấn
+		})
+		if err == nil {
+			sqlDB, _ := db.DB()
+			if err = sqlDB.Ping(); err == nil {
+				log.Println("Connected to MySQL successfully!")
+				return db, nil
+			}
+		}
+		log.Printf("Attempt %d: Failed to connect to MySQL: %v", i, err)
+		log.Printf("Retrying in %v...", retryDelay)
+		time.Sleep(retryDelay)
+	}
+
+	return nil, fmt.Errorf("failed to connect to MySQL after %d attempts", maxAttempts)
+}
+
+func keepDBAlive(db *gorm.DB) {
+	ticker := time.NewTicker(10 * time.Minute)
+	defer ticker.Stop()
+
+	for range ticker.C {
+		sqlDB, err := db.DB()
+		if err != nil {
+			log.Println("Lost connection to database, reconnecting...")
+			db, err = connectToDB()
+			if err != nil {
+				log.Fatalf("Reconnection failed: %v", err)
+			}
+		} else {
+			err = sqlDB.Ping()
+			if err != nil {
+				log.Println("Ping failed, reconnecting...")
+				db, err = connectToDB()
+				if err != nil {
+					log.Fatalf("Reconnection failed: %v", err)
+				}
+			}
+		}
+	}
+}
+
 func main() {
 	// Init Echo instance
 	e := echo.New()
@@ -29,10 +83,23 @@ func main() {
 	e.Use(middleware.Recover())
 
 	// MySQL connection
-	db, err := gorm.Open(mysql.Open(config.MYSQL_DSN), &gorm.Config{})
+	db, err := connectToDB()
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
+	go keepDBAlive(db)
+
+	// get connection from GORM and check
+	sqlDB, err := db.DB()
+	defer sqlDB.Close()
+	if err != nil {
+		log.Fatalf("Failed to get database connection: %v", err)
+	}
+
+	// Config to keep alive connection
+	sqlDB.SetMaxOpenConns(10)
+	sqlDB.SetMaxIdleConns(5)
+	sqlDB.SetConnMaxLifetime(30 * time.Minute)
 
 	// Redis connection
 	rdb := redis.NewClient(&redis.Options{
