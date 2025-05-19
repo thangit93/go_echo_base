@@ -8,57 +8,37 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/go-redis/redis/v8"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"gorm.io/driver/mysql"
-	"gorm.io/gorm"
 
-	"echo-base/config"
-	"echo-base/internal/handlers"
-	"echo-base/internal/repositories"
-	"echo-base/internal/services"
+	"github.com/thangit93/echo-base/internal/infrastructure"
+	"github.com/thangit93/echo-base/internal/routers"
 )
 
+// dbMiddleware ping and reconnect before each request
+func dbMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		c.Set("db", infrastructure.GetManager().GetDB())
+		return next(c)
+	}
+}
+
 func main() {
-	// Init Echo instance
+	// init DB when start
+	if err := infrastructure.GetManager().Init(); err != nil {
+		log.Fatalf("❌ DB init failed: %v", err)
+	}
+	db := infrastructure.GetManager().GetDB()
+
 	e := echo.New()
+	e.Use(middleware.Logger(), middleware.Recover(), dbMiddleware)
 
-	// Middleware
-	e.Use(middleware.Logger())
-	e.Use(middleware.Recover())
-
-	// MySQL connection
-	db, err := gorm.Open(mysql.Open(config.MYSQL_DSN), &gorm.Config{})
-	if err != nil {
-		log.Fatalf("Failed to connect to database: %v", err)
+	// Redis
+	if err := infrastructure.InitRedis(); err != nil {
+		log.Fatalf("❌ Redis init failed: %v", err)
 	}
 
-	// Redis connection
-	rdb := redis.NewClient(&redis.Options{
-		Addr:     config.REDIS_ADDR,
-		Password: "", // no password set
-		DB:       0,  // use default DB
-	})
-
-	// check Redis connection
-	ctx := context.Background()
-	_, err = rdb.Ping(ctx).Result()
-	if err != nil {
-		log.Fatalf("Failed to connect to Redis: %v", err)
-	}
-
-	// init repository, service, and handler with pointer
-	userRepo := repositories.NewUserRepository(db)      // *UserRepository
-	userService := services.NewUserService(userRepo)    // *UserService
-	userHandler := handlers.NewUserHandler(userService) // *UserHandler
-
-	// Routes
-	e.GET("/", func(c echo.Context) error {
-		return c.String(http.StatusOK, "Welcome to Echo API!")
-	})
-	e.GET("/users", userHandler.GetAllUsers)
-	e.POST("/users", userHandler.CreateUser)
+	routers.InitRouter(e, db)
 
 	// Start server
 	go func() {
@@ -67,10 +47,11 @@ func main() {
 		}
 	}()
 
-	// Wait for interrupt signal to gracefully shutdown the server
+	// graceful shutdown
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt)
 	<-quit
+
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	if err := e.Shutdown(ctx); err != nil {

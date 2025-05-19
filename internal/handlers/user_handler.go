@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-	"echo-base/internal/services"
+	"github.com/thangit93/echo-base/internal/services"
 )
 
 type UserHandler struct {

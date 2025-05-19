@@ -1,9 +1,12 @@
 services:
   app:
     build:
-      dockerfile: ./docker/go/Dockerfile
+      dockerfile: ./docker/go/Dockerfile.dev
       context: .
     container_name: echo_app
+    command: air
+    volumes:
+      - .:/app
     ports:
       - ${APP_PORT:-8080}:8080
     depends_on:
