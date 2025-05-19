@@ -1,7 +1,7 @@
 package services
 
 import (
-	"echo-base/internal/repositories"
+	"github.com/thangit93/echo-base/internal/repositories"
 )
 
 type UserService struct {

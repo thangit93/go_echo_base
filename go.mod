@@ -1,4 +1,4 @@
-module echo-base
+module github.com/thangit93/echo-base
 
 go 1.20
 

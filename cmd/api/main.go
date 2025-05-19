@@ -17,10 +17,10 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 
-	"echo-base/config"
-	"echo-base/internal/handlers"
-	"echo-base/internal/repositories"
-	"echo-base/internal/services"
+	"github.com/thangit93/echo-base/config"
+	"github.com/thangit93/echo-base/internal/handlers"
+	"github.com/thangit93/echo-base/internal/repositories"
+	"github.com/thangit93/echo-base/internal/services"
 )
 
 var (
