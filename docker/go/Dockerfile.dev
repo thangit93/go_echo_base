@@ -1,0 +1,25 @@
+# Use the official Golang image
+FROM golang:1.24.3-alpine
+
+# Set environment variables
+ENV CGO_ENABLED=0 \
+    GO111MODULE=on
+
+# Install Air
+RUN go install github.com/air-verse/air@latest
+
+# Set working directory
+WORKDIR /app
+
+# Copy go mod files and download dependencies
+COPY go.mod go.sum ./
+RUN go mod download
+
+# Copy the rest of the code
+COPY . .
+
+# Expose app port (adjust if needed)
+EXPOSE 8080
+
+# Run with Air for hot reload
+CMD ["air"]
