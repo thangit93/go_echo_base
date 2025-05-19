@@ -6,7 +6,9 @@ ENV CGO_ENABLED=0 \
     GO111MODULE=on
 
 # Install Air
-RUN go install github.com/air-verse/air@latest
+RUN go install github.com/air-verse/air@latest \
+    && go install -tags 'mysql' github.com/golang-migrate/migrate/v4/cmd/migrate@latest \
+    && apk add --no-cache make
 
 # Set working directory
 WORKDIR /app

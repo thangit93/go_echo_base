@@ -12,6 +12,7 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 
 	"github.com/thangit93/echo-base/internal/infrastructure"
+	"github.com/thangit93/echo-base/internal/migrations"
 	"github.com/thangit93/echo-base/internal/routers"
 )
 
@@ -24,6 +25,8 @@ func dbMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 }
 
 func main() {
+	// Auto run migrate when start app
+	migrations.RunMigration()
 	// init DB when start
 	if err := infrastructure.GetManager().Init(); err != nil {
 		log.Fatalf("❌ DB init failed: %v", err)
