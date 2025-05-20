@@ -18,8 +18,8 @@ prod-down:
 create-migrate:
 	migrate create -ext sql -dir database/migrations -seq $(name)
 migrate-up:
-	migrate -path database/migrations -database "mysql://${MYSQL_DSN}" up
+	migrate -path database/migrations -database "mysql://${MYSQL_DSN}" -verbose up
 migrate-down:
-	migrate -path database/migrations -database "mysql://${MYSQL_DSN}" down
+	migrate -path database/migrations -database "mysql://${MYSQL_DSN}" -verbose down
 migrate-rollback:
-	migrate -path database/migrations -database "mysql://${MYSQL_DSN}" down $(step)
+	migrate -path database/migrations -database "mysql://${MYSQL_DSN}" -verbose down $(step)
