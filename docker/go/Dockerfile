@@ -2,7 +2,8 @@
 FROM golang:1.24.3-alpine AS builder
 WORKDIR /app
 COPY . .
-RUN go mod download
+RUN go mod download \
+  && go install -tags 'mysql' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
 RUN CGO_ENABLED=0 GOOS=linux go build -o main ./cmd/api/main.go
 
 # Run stage

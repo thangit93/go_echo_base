@@ -1,3 +1,8 @@
+ifneq (,$(wildcard ./.env))
+    include .env
+    export
+endif
+
 build:
 	docker compose build --no-cache
 build-dev:
@@ -10,3 +15,11 @@ prod-up:
 	docker compose up -d
 prod-down:
 	docker compose down -v
+create-migrate:
+	migrate create -ext sql -dir database/migrations -seq $(name)
+migrate-up:
+	migrate -path database/migrations -database "mysql://${MYSQL_DSN}" -verbose up
+migrate-down:
+	migrate -path database/migrations -database "mysql://${MYSQL_DSN}" -verbose down
+migrate-rollback:
+	migrate -path database/migrations -database "mysql://${MYSQL_DSN}" -verbose down $(step)
