@@ -16,6 +16,6 @@ func (s *UserService) GetAllUsers() ([]repositories.User, error) {
 	return s.userRepo.GetAllUsers()
 }
 
-func (s *UserService) CreateUser(name, email string) error {
-	return s.userRepo.CreateUser(name, email)
+func (s *UserService) CreateUser(name string, email string, password string) error {
+	return s.userRepo.CreateUser(name, email, password)
 }
