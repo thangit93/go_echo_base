@@ -14,15 +14,12 @@ services:
       - redis
     env_file:
       - path: .env
-    environment:
-      - MYSQL_DSN=user:password@tcp(mysql:3306)/dbname?charset=utf8mb4&parseTime=True&loc=Local
-      - REDIS_ADDR=redis:6379
 
   mysql:
     image: mysql:8.0
     container_name: mysql8
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_HOST_PORT:-3306}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-3306}
       MYSQL_DATABASE: ${MYSQL_DATABASE:-3306}
       MYSQL_USER: ${MYSQL_USER:-3306}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:-3306}
