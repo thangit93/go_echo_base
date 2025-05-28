@@ -25,8 +25,6 @@ func dbMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 }
 
 func main() {
-	// Auto run migrate when start app
-	migrations.RunMigration()
 	// init DB when start
 	if err := infrastructure.GetManager().Init(); err != nil {
 		log.Fatalf("❌ DB init failed: %v", err)
@@ -40,7 +38,10 @@ func main() {
 	if err := infrastructure.InitRedis(); err != nil {
 		log.Fatalf("❌ Redis init failed: %v", err)
 	}
+	// Auto run migrate when start app
+	migrations.RunMigration()
 
+	// Init router
 	routers.InitRouter(e, db)
 
 	// Start server

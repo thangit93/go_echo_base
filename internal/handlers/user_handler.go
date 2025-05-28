@@ -25,14 +25,15 @@ func (h *UserHandler) GetAllUsers(c echo.Context) error {
 
 func (h *UserHandler) CreateUser(c echo.Context) error {
 	var req struct {
-		Name  string `json:"name"`
-		Email string `json:"email"`
+		Name     string `json:"name"`
+		Email    string `json:"email"`
+		Password string `json:"password"`
 	}
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request"})
 	}
-	if err := h.userService.CreateUser(req.Name, req.Email); err != nil {
+	if err := h.userService.CreateUser(req.Name, req.Email, req.Password); err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
-	return c.JSON(http.StatusCreated, map[string]string{"message": "User created"})
+	return c.JSON(http.StatusCreated, map[string]string{"message": "User created successfully"})
 }
